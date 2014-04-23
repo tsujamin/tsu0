@@ -27,6 +27,8 @@ module control_unit();
     * 7: HALT
     * 8: [SP] := ACC, SP := SP + 1
     * 9: ACC := [SP], SP := SP - 1
+    * a: IP := S, [SP] := IP, SP := SP + 1
+    * b: IP := [SP - 1], SP := SP - 1
     * /
 
     /* 
@@ -71,6 +73,12 @@ module control_unit();
     //0/1 -> Fetch/Exec
     reg state = 1;
     
+    //Determine pop operations
+    wire pop_op;
+    assign pop_op = (rom_out[WORD_SIZE-1:WORD_SIZE-4] == 4'h9)
+                    | (rom_out[WORD_SIZE-1:WORD_SIZE-4] == 4'hb);
+    
+    
     always @(posedge sysclk) begin
         
         state <= ~state; //Alternate state
@@ -98,7 +106,7 @@ module control_unit();
                         if (acc[WORD_SIZE-1] == 1'b0)
                             ip <= ir[WORD_SIZE-5:0];
                     end
-                4'h6: begin //PC :=S if ACC != 0
+                4'h6: begin //PC := S if ACC != 0
                         if (acc != 8'd0)
                             ip <= ir[WORD_SIZE-5:0];
                     end
@@ -111,22 +119,34 @@ module control_unit();
                         mem_write <= 1;
                         sp <= sp + 12'b1;
                     end
-                4'h9: begin // ACC := [SP], SP := SP - 1
+                4'h9: begin // ACC := [SP - 1], SP := SP - 1
                         acc <= mem_out;
+                        sp <= sp - 12'b1;
+                    end
+                4'ha: begin // IP := S, [SP] := IP, SP := SP + 1
+                        ip <= mem_addr;
+                        mem_addr <= sp;
+                        mem_in <= ip;
+                        mem_write <= 1;
+                        sp <= sp + 12'b1;
+                    end
+                4'hb: begin // IP := [SP - 1], SP := SP - 1
+                        ip <= mem_out;
                         sp <= sp - 12'b1;
                     end
                 default: $finish;
             endcase
         end
+        
         else begin //Fetch
             ir <= rom_out;
             ip <= ip + 1; 
             mem_write <= 0;
             
-            //Get stack or addr
-            if (rom_out[WORD_SIZE-1:WORD_SIZE-4] == 4'h9)
+            //Get stack if pop/return
+            if (pop_op) //
                 mem_addr <= (sp - 12'b1);
-            else   
+            else //Get memory
                 mem_addr <= rom_out[WORD_SIZE-5:0];
         end
     end
