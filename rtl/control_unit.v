@@ -115,6 +115,7 @@ module control_unit();
                         acc <= mem_out;
                         sp <= sp - 12'b1;
                     end
+                default: $finish;
             endcase
         end
         else begin //Fetch
