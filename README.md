@@ -37,13 +37,17 @@ the bundled program counts backwards from 10 before storing 10 in the accumulato
 instruction list
 ----------------
 
- * 0: ACC := [S]
- * 1: [S] := ACC
- * 2: ACC:= ACC + [S]
- * 3: ACC := ACC - [S]
- * 4: PC := S
- * 5: PC := S if ACC >=0
- * 6: PC :=S if ACC != 0
+ * 0: LDA `ACC := [S]`
+ * 1: STA `[S] := ACC`
+ * 2: ADD `ACC:= ACC + [S]`
+ * 3: SUB `ACC := ACC - [S]`
+ * 4: JMP `PC := S`
+ * 5: JGE `PC := S if ACC >=0`
+ * 6: JNZ `PC :=S if ACC != 0`
  * 7: HALT
+ * 8: PUSH `[SP] := ACC, SP := SP + 1`
+ * 9: POP `ACC := [SP], SP := SP - 1`
+ * a: CALL `IP := S, [SP] := IP, SP := SP + 1`
+ * b: RET `IP := [SP - 1], SP := SP - 1`
 
 
