@@ -124,7 +124,7 @@ module control_unit();
                         sp <= sp - 12'b1;
                     end
                 4'ha: begin // IP := S, [SP] := IP, SP := SP + 1
-                        ip <= mem_addr;
+                        ip <= mem_addr ;
                         mem_addr <= sp;
                         mem_in <= ip;
                         mem_write <= 1;
