@@ -25,6 +25,8 @@ module control_unit();
     * 5: PC := S if ACC >=0
     * 6: PC :=S if ACC != 0
     * 7: HALT
+    * 8: [SP] := ACC, SP := SP + 1
+    * 9: ACC := [SP], SP := SP - 1
     * /
 
     /* 
@@ -37,6 +39,7 @@ module control_unit();
     reg [WORD_SIZE-1:0] acc;
     reg [ADDR_SIZE-1:0] ip;
     reg [WORD_SIZE-1:0] ir;
+    reg [ADDR_SIZE-1:0] sp;
 
     //Memory
     reg [ADDR_SIZE-1:0] mem_addr;
@@ -58,6 +61,7 @@ module control_unit();
     initial begin //default register values
         ir <= 16'h4000;
         ip <= 0;
+        sp <= 12'd191; //64 word stack
         mem_addr <= 0;
         mem_in <= 0;
         mem_write <= 0;
@@ -73,7 +77,7 @@ module control_unit();
         
         if (state) begin //Exec
             case (ir[WORD_SIZE-1:WORD_SIZE-4])
-                4'h0: begin//ACC := [S]
+                4'h0: begin //ACC := [S]
                         acc <= mem_out;
                     end
                 4'h1: begin //[S] := ACC
@@ -81,13 +85,13 @@ module control_unit();
                         mem_addr <= ir[WORD_SIZE-5:0];
                         mem_write <= 1;
                     end
-                4'h2: begin//ACC:= ACC + [S]
+                4'h2: begin //ACC:= ACC + [S]
                         acc <= acc + mem_out;
                     end
-                4'h3: begin//ACC := ACC - [S]
+                4'h3: begin //ACC := ACC - [S]
                         acc <= acc - mem_out;
                     end
-                4'h4: begin// PC := S
+                4'h4: begin // PC := S
                         ip <= ir[WORD_SIZE-5:0];
                     end
                 4'h5: begin //PC := S if ACC >=0
@@ -98,14 +102,31 @@ module control_unit();
                         if (acc != 8'd0)
                             ip <= ir[WORD_SIZE-5:0];
                     end
-                default: $finish;
+                4'h7: begin // HALT
+                        $finish; 
+                    end
+                4'h8: begin // [SP] := ACC, SP := SP + 1
+                        mem_addr <= sp;
+                        mem_in <= acc;
+                        mem_write <= 1;
+                        sp <= sp + 12'b1;
+                    end
+                4'h9: begin // ACC := [SP], SP := SP - 1
+                        acc <= mem_out;
+                        sp <= sp - 12'b1;
+                    end
             endcase
         end
         else begin //Fetch
             ir <= rom_out;
             ip <= ip + 1; 
             mem_write <= 0;
-            mem_addr <= rom_out[WORD_SIZE-5:0]; //read address
+            
+            //Get stack or addr
+            if (rom_out[WORD_SIZE-1:WORD_SIZE-4] == 4'h9)
+                mem_addr <= (sp - 12'b1);
+            else   
+                mem_addr <= rom_out[WORD_SIZE-5:0];
         end
     end
 endmodule
