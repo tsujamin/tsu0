@@ -29,7 +29,6 @@ programming
 
 the control unit loads its memory from data/ram.txt. 
 
-this file consist of 256 instructions, each of 4 hexidecimal digits (one instruction 3 address).
 memory is shared between instructions and data.
 
 the bundled program counts backwards from 10 before storing 10 in the accumulator and halting.
@@ -49,5 +48,11 @@ instruction list
  * 9: POP `ACC := [SP], SP := SP - 1`
  * a: CALL `IP := S, [SP] := IP, SP := SP + 1`
  * b: RET `IP := [SP - 1], SP := SP - 1`
+ 
+test program
+============
+the ram is preloaded with the program in `data/ram.txt`
+
+refer to `data/test.mu0` for the disassembled source code.
 
 
