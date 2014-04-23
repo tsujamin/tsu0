@@ -1,7 +1,7 @@
 tsu0
 ====
 
-a mu0 implementation in verilog rtl
+an extended mu0 implementation in verilog rtl
 
 compilation
 ===========
